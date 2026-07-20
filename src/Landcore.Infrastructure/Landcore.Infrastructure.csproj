@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Landcore.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
+    <PackageReference Include="MailKit" Version="4.7.1" />
+    <!-- Standalone ASP.NET Core Identity primitive (PasswordHasher<T>) — not the full
+         Identity/EF/stores stack, just the hashing primitive. Preferred over adding a brand-new
+         hashing library (e.g. BCrypt.Net-Next) per the Phase 3 task brief. -->
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="10.0.0" />
+    <!-- Phase 11: PDF rendering for legal document generation (AllotmentLetter/TransferLetter/
+         NOC/PossessionLetter). Community license — see Program.cs's QuestPDF.Settings.License
+         line for the revenue/org-size eligibility caveat that must be confirmed before production
+         use. Kept out of Landcore.Application.csproj entirely — see
+         Landcore.Application/Interfaces/IDocumentGenerationService.cs remarks for why the
+         implementation instead lives in this project, under Documents/DocumentGenerationService.cs. -->
+    <PackageReference Include="QuestPDF" Version="2024.10.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Landcore.Application\Landcore.Application.csproj" />
+    <ProjectReference Include="..\Landcore.Domain\Landcore.Domain.csproj" />
+    <ProjectReference Include="..\Landcore.Common\Landcore.Common.csproj" />
+  </ItemGroup>
+</Project>

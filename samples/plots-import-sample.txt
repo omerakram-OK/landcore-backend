@@ -1,0 +1,5 @@
+SocietyName	PlotNumber	BlockName	Size	SizeUnit	Category	BasePrice	AnnualMaintenanceCharge
+DHA Phase 1	A-101	North Block	5	Marla	Residential	2500000	15000
+DHA Phase 1	A-102	North Block	10	Marla	Residential	4800000	25000
+DHA Phase 1	A-103	North Block	1	Kanal	Commercial	9500000	40000
+DHA Phase 2	B-201	South Block	7	Marla	Residential	3200000	18000

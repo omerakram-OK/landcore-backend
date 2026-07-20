@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Landcore.API": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:62896;http://localhost:62897"
+    }
+  }
+}

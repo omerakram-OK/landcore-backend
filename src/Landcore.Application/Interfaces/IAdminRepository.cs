@@ -19,4 +19,6 @@ public interface IAdminRepository
     Task UpdateStatusAsync(ObjectId id, AdminStatus status, ObjectId updatedBy, CancellationToken cancellationToken = default);
 
     Task SetSubscriptionIdAsync(ObjectId adminId, ObjectId subscriptionId, ObjectId updatedBy, CancellationToken cancellationToken = default);
+
+    Task SetLogoAsync(ObjectId adminId, string? logoBase64, string? logoContentType, ObjectId updatedBy, CancellationToken cancellationToken = default);
 }

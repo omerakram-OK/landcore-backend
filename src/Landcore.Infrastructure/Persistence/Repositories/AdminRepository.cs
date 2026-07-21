@@ -85,4 +85,15 @@ public class AdminRepository : IAdminRepository
 
         await _context.Admins.UpdateOneAsync(x => x.Id == adminId, update, cancellationToken: cancellationToken);
     }
+
+    public async Task SetLogoAsync(ObjectId adminId, string? logoBase64, string? logoContentType, ObjectId updatedBy, CancellationToken cancellationToken = default)
+    {
+        var update = Builders<Admin>.Update
+            .Set(x => x.LogoBase64, logoBase64)
+            .Set(x => x.LogoContentType, logoContentType)
+            .Set(x => x.UpdatedAt, DateTime.UtcNow)
+            .Set(x => x.UpdatedBy, updatedBy);
+
+        await _context.Admins.UpdateOneAsync(x => x.Id == adminId, update, cancellationToken: cancellationToken);
+    }
 }

@@ -82,6 +82,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IAuditLogger, AuditLogger>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<IBrandingService, BrandingService>();
 
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IDesignationService, DesignationService>();

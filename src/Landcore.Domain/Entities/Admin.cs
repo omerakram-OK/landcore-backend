@@ -15,4 +15,8 @@ public class Admin : BaseEntity
     public ObjectId SubscriptionId { get; set; }
 
     public AdminStatus Status { get; set; }
+
+    public string? LogoBase64 { get; set; }
+
+    public string? LogoContentType { get; set; }
 }

@@ -78,6 +78,14 @@ public class InstallmentsController : ControllerBase
         return Ok(Envelope(proposal));
     }
 
+    [HttpPut("{id}/schedule")]
+    [RequirePermission("Installments", "Edit")]
+    public async Task<IActionResult> UpdateSchedule(string id, [FromBody] UpdateInstallmentPlanRequestDto request, CancellationToken cancellationToken)
+    {
+        var result = await _planService.UpdateScheduleAsync(CurrentAdminId, id, request, CurrentUserId, cancellationToken);
+        return Ok(Envelope(result));
+    }
+
     private string CurrentUserId => User.FindFirst(Constants.ClaimTypes.UserId)?.Value
         ?? throw new InvalidOperationException("Authenticated request is missing the user id claim.");
 

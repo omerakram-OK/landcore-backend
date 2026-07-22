@@ -15,6 +15,7 @@ public class InstallmentPlanService : IInstallmentPlanService
     private readonly IBookingRepository _bookingRepository;
     private readonly IValidator<CreateInstallmentPlanRequestDto> _createValidator;
     private readonly IValidator<ApplyDiscountRequestDto> _applyDiscountValidator;
+    private readonly IValidator<UpdateInstallmentPlanRequestDto> _updateScheduleValidator;
     private readonly IAuditLogger _auditLogger;
 
     public InstallmentPlanService(
@@ -22,12 +23,14 @@ public class InstallmentPlanService : IInstallmentPlanService
         IBookingRepository bookingRepository,
         IValidator<CreateInstallmentPlanRequestDto> createValidator,
         IValidator<ApplyDiscountRequestDto> applyDiscountValidator,
+        IValidator<UpdateInstallmentPlanRequestDto> updateScheduleValidator,
         IAuditLogger auditLogger)
     {
         _planRepository = planRepository;
         _bookingRepository = bookingRepository;
         _createValidator = createValidator;
         _applyDiscountValidator = applyDiscountValidator;
+        _updateScheduleValidator = updateScheduleValidator;
         _auditLogger = auditLogger;
     }
 
@@ -145,6 +148,89 @@ public class InstallmentPlanService : IInstallmentPlanService
 
         _auditLogger.LogAction(performedByUserId, "InstallmentPlanDiscountApplied", "InstallmentPlan", plan.Id.ToString(), adminId,
             new { DiscountAmount = request.DiscountAmount, request.Notes, request.Justification });
+
+        return MapToDto(plan);
+    }
+
+    public async Task<InstallmentPlanResponseDto> UpdateScheduleAsync(string adminId, string planId, UpdateInstallmentPlanRequestDto request, string performedByUserId, CancellationToken cancellationToken = default)
+    {
+        await ValidationHelper.ValidateOrThrowAsync(_updateScheduleValidator, request, cancellationToken);
+
+        var adminObjectId = ParseObjectId(adminId, "adminId");
+        var plan = await LoadPlanOrThrowAsync(adminObjectId, planId, cancellationToken);
+
+        var existingBySeqNo = plan.Installments.ToDictionary(installment => installment.SeqNo);
+
+        foreach (var existing in plan.Installments)
+        {
+            var hasRecordedPayment = (decimal)existing.PaidAmount > 0;
+            if (!hasRecordedPayment)
+            {
+                continue;
+            }
+
+            var stillIncluded = request.Installments.Any(item => item.SeqNo == existing.SeqNo);
+            if (!stillIncluded)
+            {
+                throw new ValidationAppException(
+                    $"Installment #{existing.SeqNo} already has a recorded payment and cannot be removed.",
+                    new Dictionary<string, string[]> { ["Installments"] = [$"Installment #{existing.SeqNo} already has a recorded payment and cannot be removed."] });
+            }
+        }
+
+        var nextNewSeqNo = plan.Installments.Count == 0 ? 1 : plan.Installments.Max(installment => installment.SeqNo) + 1;
+        var updatedInstallments = new List<Installment>();
+
+        foreach (var item in request.Installments)
+        {
+            if (item.SeqNo.HasValue && existingBySeqNo.TryGetValue(item.SeqNo.Value, out var existing))
+            {
+                var paidAmount = (decimal)existing.PaidAmount;
+
+                if (item.Amount < paidAmount)
+                {
+                    throw new ValidationAppException(
+                        $"Installment #{existing.SeqNo} already has {paidAmount} paid against it and cannot be reduced below that amount.",
+                        new Dictionary<string, string[]> { ["Installments"] = [$"Installment #{existing.SeqNo} already has {paidAmount} paid against it and cannot be reduced below that amount."] });
+                }
+
+                if (existing.Status == InstallmentStatus.Paid && (item.Amount != paidAmount || item.DueDate != existing.DueDate))
+                {
+                    throw new ValidationAppException(
+                        $"Installment #{existing.SeqNo} is already fully paid and cannot be changed.",
+                        new Dictionary<string, string[]> { ["Installments"] = [$"Installment #{existing.SeqNo} is already fully paid and cannot be changed."] });
+                }
+
+                updatedInstallments.Add(new Installment
+                {
+                    SeqNo = existing.SeqNo,
+                    DueDate = item.DueDate,
+                    Amount = (Decimal128)item.Amount,
+                    Status = existing.Status,
+                    PaidAmount = existing.PaidAmount,
+                });
+            }
+            else
+            {
+                updatedInstallments.Add(new Installment
+                {
+                    SeqNo = nextNewSeqNo++,
+                    DueDate = item.DueDate,
+                    Amount = (Decimal128)item.Amount,
+                    Status = InstallmentStatus.Pending,
+                    PaidAmount = Decimal128.Zero,
+                });
+            }
+        }
+
+        var performedBy = ParseObjectId(performedByUserId, "performedByUserId");
+        plan.Installments = updatedInstallments.OrderBy(installment => installment.DueDate).ToList();
+        plan.UpdatedAt = DateTime.UtcNow;
+        plan.UpdatedBy = performedBy;
+
+        await _planRepository.UpdateAsync(plan, cancellationToken);
+
+        _auditLogger.LogAction(performedByUserId, "InstallmentPlanScheduleUpdated", "InstallmentPlan", plan.Id.ToString(), adminId, new { InstallmentCount = updatedInstallments.Count });
 
         return MapToDto(plan);
     }

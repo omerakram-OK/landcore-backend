@@ -13,4 +13,6 @@ public interface IInstallmentPlanService
     Task<InstallmentPlanResponseDto> GetByBookingIdAsync(string adminId, string bookingId, CancellationToken cancellationToken = default);
 
     Task<InstallmentPlanResponseDto> ApplyDiscountAsync(string adminId, string planId, ApplyDiscountRequestDto request, string performedByUserId, CancellationToken cancellationToken = default);
+
+    Task<InstallmentPlanResponseDto> UpdateScheduleAsync(string adminId, string planId, UpdateInstallmentPlanRequestDto request, string performedByUserId, CancellationToken cancellationToken = default);
 }

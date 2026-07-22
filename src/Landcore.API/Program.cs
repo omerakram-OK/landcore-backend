@@ -148,6 +148,7 @@ builder.Services.AddScoped<IValidator<MergePlotsRequestDto>, MergePlotsRequestVa
 builder.Services.AddScoped<IValidator<CreateBookingRequestDto>, CreateBookingRequestValidator>();
 builder.Services.AddScoped<IValidator<BookingActionRequestDto>, BookingActionRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateInstallmentPlanRequestDto>, CreateInstallmentPlanRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateInstallmentPlanRequestDto>, UpdateInstallmentPlanRequestValidator>();
 builder.Services.AddScoped<IValidator<RecordPaymentRequestDto>, RecordPaymentRequestValidator>();
 builder.Services.AddScoped<IValidator<BounceChequeRequestDto>, BounceChequeRequestValidator>();
 
